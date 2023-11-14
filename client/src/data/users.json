@@ -1,0 +1,35 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "John Doe",
+      "email": "a",
+      "password": "a",
+      "monthlyData": [
+        {
+          "year": 2023,
+          "months": [
+            {
+              "month": 1,
+              "categories": ["Gas", "Laundry"],
+              "budget": [60, 20],
+              "spent": [30, 5]
+            },
+            {
+              "month": 2,
+              "categories": ["Food"],
+              "budget": [540],
+              "spent": [540]
+            },
+            {
+                "month": 11,
+                "categories": ["Spending Money", "Food", "Gas", "Laundry", "Rent"],
+                "budget": [100, 500, 60, 20, 1000],
+                "spent": [30, 540, 30, 5, 1000]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
