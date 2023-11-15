@@ -339,10 +339,11 @@ function deleteRow(categoryIndex: number) {
             </div>
           </div>
           <div class="field">
-            <label class="label">Budget: ${{ currentBudget }}</label>
+            <label class="label">Budget:</label>
             <div class="control">
               <div class="field is-grouped">
-                <div class="dropdown is-hoverable">
+                <input class="input" type="number" v-model="currentBudget" />
+                <div class="dropdown is-active">
                   <!-- Dropdown to select add or subtract -->
                   <div class="dropdown-trigger">
                     <button
@@ -372,8 +373,9 @@ function deleteRow(categoryIndex: number) {
             </div>
           </div>
           <div class="field">
-            <label class="label">Spent: ${{ currentSpent }}</label>
+            <label class="label">Spent:</label>
             <div class="field is-grouped">
+              <input class="input" type="number" v-model="currentSpent" />
               <div class="dropdown is-hoverable">
                 <!-- Dropdown to select add or subtract -->
                 <div class="dropdown-trigger">
@@ -470,12 +472,20 @@ function deleteRow(categoryIndex: number) {
               <td>${{ month.budget[categoryIndex] }}</td>
               <td>${{ month.spent[categoryIndex] }}</td>
               <td>
-                <div class="button action" @click="editRow(categoryIndex)" :class="{'is-info': isColorsEnabled}">
+                <div
+                  class="button action"
+                  @click="editRow(categoryIndex)"
+                  :class="{ 'is-info': isColorsEnabled }"
+                >
                   <span class="icon is-small">
                     <i class="fas fa-edit"></i>
                   </span>
                 </div>
-                <div class="button action" @click="deleteRow(categoryIndex)" :class="{'is-danger': isColorsEnabled}">
+                <div
+                  class="button action"
+                  @click="deleteRow(categoryIndex)"
+                  :class="{ 'is-danger': isColorsEnabled }"
+                >
                   <span class="icon is-small">
                     <i class="fas fa-trash"></i>
                   </span>
@@ -520,6 +530,7 @@ function deleteRow(categoryIndex: number) {
 .buttons {
   display: flex;
   justify-content: center;
+  
 }
 .is-over {
   background-color: #ff7070;
@@ -537,9 +548,6 @@ function deleteRow(categoryIndex: number) {
   display: flex;
   align-items: center;
 }
-.dropdown {
-  margin-right: 0.5rem;
-}
 .dropdown-content {
   /*make the text in the center*/
   justify-content: center;
@@ -547,26 +555,30 @@ function deleteRow(categoryIndex: number) {
   padding: 0;
   width: 4rem;
 }
-.dropdown-trigger, .dropdown-menu{
+.dropdown-trigger,
+.dropdown-menu {
   margin: 0;
   padding: 0;
 }
-.dropdown-item{
-  padding: .2rem;
-  width: 4rem;
+.dropdown-item {
+  padding: 0.2rem;
   text-align: center;
 }
-.button, .input{
-  border: 1.2px solid #000000;
+.dropdown-item:hover {
+  background-color: #000000;
+  color: #ffffff;
 }
-.button:hover{
-  border: 1.2px solid #000000;
-  background-color: #bbbbbb;
+.button,
+.button:hover,
+.input,
+.dropdown-content{
+  border: 1px solid #000000;
 }
-.action{
-  margin: 0 .2rem;
+.action {
+  margin: 0 0.2rem;
 }
-.table.is-bordered td, .table.is-bordered th {
+.table.is-bordered td,
+.table.is-bordered th {
   border: 1px solid #000000;
 }
 </style>
