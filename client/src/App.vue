@@ -7,14 +7,11 @@ import NavBar from './components/NavBar.vue';
 </script>
 
 <template>
-  <header>
-    <NavBar />
-  </header>
-
   <div class="container">
     <!-- <progress class="progress is-small is-primary" max="100" v-if="session.loading">15%</progress> -->
     <RouterView />
   </div>
+  <NavBar />
 
 </template>
 
@@ -27,6 +24,6 @@ import NavBar from './components/NavBar.vue';
     background-color: white;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
     padding: 5px;
-    min-height: 100vh;
+    min-height: calc(100vh - 52px);
   }
 </style>

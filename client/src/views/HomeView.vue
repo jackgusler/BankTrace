@@ -8,15 +8,19 @@ onMounted(() => {
 
 const session = getSession();
 const isColorsEnabled = ref(false);
-const isModalActive = ref(false);
+const isNewRowModalActive = ref(false);
 const isWarningModalActive = ref(false);
 const isMessageActive = ref(false);
 const isEditModalActive = ref(false);
+const isMonthDropdownActive = ref(false);
+const isYearDropdownActive = ref(false);
 
 const newEditBudget = ref(0);
 const newEditSpent = ref(0);
 const operatorBudget = ref("+");
 const operatorSpent = ref("+");
+const isBudgetOperatorActive = ref(false);
+const isSpentOperatorActive = ref(false);
 
 const selectedMonth = ref(new Date().getMonth() + 1);
 const selectedYear = ref(new Date().getFullYear());
@@ -100,6 +104,11 @@ function updateBudget() {
   }
 }
 
+function closeNewRowModal() {
+  isNewRowModalActive.value = false;
+  isMessageActive.value = false;
+}
+
 function check() {
   if (newCategory.value == "" || newBudget.value == 0) {
     isMessageActive.value = true;
@@ -155,7 +164,7 @@ function closeModal() {
   newCategory.value = "";
   newBudget.value = 0;
   newSpent.value = 0;
-  isModalActive.value = false;
+  isNewRowModalActive.value = false;
   isMessageActive.value = false;
 }
 
@@ -189,7 +198,15 @@ function closeEditModal() {
   newEditSpent.value = 0;
   operatorBudget.value = "+";
   operatorSpent.value = "+";
+  isBudgetOperatorActive.value = false;
+  isSpentOperatorActive.value = false;
   isEditModalActive.value = false;
+}
+
+function cancelEditModal() {
+  isEditModalActive.value = false;
+  isBudgetOperatorActive.value = false;
+  isSpentOperatorActive.value = false;
 }
 
 function closeWarningModal() {
@@ -237,7 +254,7 @@ function editRow(categoryIndex: number) {
         (yearData) => yearData.year === selectedYear.value
       )
     ]?.months.filter((month) => month.month === selectedMonth.value)[0].budget[
-      categoryIndex
+    categoryIndex
     ] ?? 0;
   currentSpent.value =
     session.user?.monthlyData[
@@ -245,7 +262,7 @@ function editRow(categoryIndex: number) {
         (yearData) => yearData.year === selectedYear.value
       )
     ]?.months.filter((month) => month.month === selectedMonth.value)[0].spent[
-      categoryIndex
+    categoryIndex
     ] ?? 0;
 }
 
@@ -257,20 +274,14 @@ function deleteRow(categoryIndex: number) {
 
 <template>
   <div>
-    <div class="modal" :class="{ 'is-active': isModalActive }">
+    <div class="modal" :class="{ 'is-active': isNewRowModalActive }">
       <div class="modal-background"></div>
       <div class="modal-content">
         <div class="box">
           <div class="field">
             <label class="label">Category</label>
             <div class="control">
-              <input
-                class="input"
-                type="text"
-                placeholder="ex: Groceries"
-                v-model="newCategory"
-                maxLength="15"
-              />
+              <input class="input" type="text" placeholder="ex: Groceries" v-model="newCategory" maxLength="15" />
             </div>
           </div>
           <div class="field">
@@ -291,16 +302,12 @@ function deleteRow(categoryIndex: number) {
             </div>
           </div>
           <div class="buttons">
-            <div class="button is-primary" @click="check">Save changes</div>
-            <div class="button" @click="isModalActive = false">Cancel</div>
+            <div class="button" @click="check">Save changes</div>
+            <div class="button" @click="closeNewRowModal">Cancel</div>
           </div>
         </div>
       </div>
-      <button
-        class="modal-close is-large"
-        aria-label="close"
-        @click="isModalActive = false"
-      ></button>
+      <button class="modal-close is-large" aria-label="close" @click="isNewRowModalActive = false"></button>
     </div>
     <div class="modal" :class="{ 'is-active': isWarningModalActive }">
       <div class="modal-background"></div>
@@ -329,13 +336,7 @@ function deleteRow(categoryIndex: number) {
           <div class="field">
             <label class="label">Category</label>
             <div class="control">
-              <input
-                class="input"
-                type="text"
-                placeholder="ex: Groceries"
-                v-model="currentCategory"
-                maxLength="15"
-              />
+              <input class="input" type="text" placeholder="ex: Groceries" v-model="currentCategory" maxLength="15" />
             </div>
           </div>
           <div class="field">
@@ -343,14 +344,11 @@ function deleteRow(categoryIndex: number) {
             <div class="control">
               <div class="field is-grouped">
                 <input class="input" type="number" v-model="currentBudget" />
-                <div class="dropdown is-active">
+                <div class="dropdown" :class="{ 'is-active': isBudgetOperatorActive }">
                   <!-- Dropdown to select add or subtract -->
                   <div class="dropdown-trigger">
-                    <button
-                      class="button"
-                      aria-haspopup="true"
-                      aria-controls="dropdown-menu"
-                    >
+                    <button class="button" aria-haspopup="true" aria-controls="dropdown-menu"
+                      @click="isBudgetOperatorActive = !isBudgetOperatorActive">
                       <span>{{ operatorBudget }}</span>
                       <span class="icon is-small">
                         <i class="fas fa-angle-down" aria-hidden="true"></i>
@@ -358,12 +356,8 @@ function deleteRow(categoryIndex: number) {
                     </button>
                     <div class="dropdown-menu" id="dropdown-menu" role="menu">
                       <div class="dropdown-content">
-                        <a class="dropdown-item" @click="operatorBudget = '+'"
-                          >+</a
-                        >
-                        <a class="dropdown-item" @click="operatorBudget = '-'"
-                          >-</a
-                        >
+                        <a class="dropdown-item" @click="(operatorBudget = '+') && (isBudgetOperatorActive = false)">+</a>
+                        <a class="dropdown-item" @click="(operatorBudget = '-') && (isBudgetOperatorActive = false)">-</a>
                       </div>
                     </div>
                   </div>
@@ -376,14 +370,11 @@ function deleteRow(categoryIndex: number) {
             <label class="label">Spent:</label>
             <div class="field is-grouped">
               <input class="input" type="number" v-model="currentSpent" />
-              <div class="dropdown is-hoverable">
+              <div class="dropdown" :class="{ 'is-active': isSpentOperatorActive }">
                 <!-- Dropdown to select add or subtract -->
                 <div class="dropdown-trigger">
-                  <button
-                    class="button"
-                    aria-haspopup="true"
-                    aria-controls="dropdown-menu"
-                  >
+                  <button class="button" aria-haspopup="true" aria-controls="dropdown-menu"
+                    @click="isSpentOperatorActive = !isSpentOperatorActive">
                     <span>{{ operatorSpent }}</span>
                     <span class="icon is-small">
                       <i class="fas fa-angle-down" aria-hidden="true"></i>
@@ -391,12 +382,8 @@ function deleteRow(categoryIndex: number) {
                   </button>
                   <div class="dropdown-menu" id="dropdown-menu" role="menu">
                     <div class="dropdown-content">
-                      <a class="dropdown-item" @click="operatorSpent = '+'"
-                        >+</a
-                      >
-                      <a class="dropdown-item" @click="operatorSpent = '-'"
-                        >-</a
-                      >
+                      <a class="dropdown-item" @click="(operatorSpent = '+') && (isSpentOperatorActive = false)">+</a>
+                      <a class="dropdown-item" @click="(operatorSpent = '-') && (isSpentOperatorActive = false)">-</a>
                     </div>
                   </div>
                 </div>
@@ -405,10 +392,10 @@ function deleteRow(categoryIndex: number) {
             </div>
           </div>
           <div class="buttons">
-            <div class="button is-primary" @click="closeEditModal">
+            <div class="button" @click="closeEditModal">
               Save changes
             </div>
-            <div class="button" @click="isEditModalActive = false">Cancel</div>
+            <div class="button" @click="cancelEditModal">Cancel</div>
           </div>
         </div>
       </div>
@@ -417,22 +404,55 @@ function deleteRow(categoryIndex: number) {
       <div class="panel-heading">
         <h3 class="panel-title">
           {{ session.user?.name }}'s Budget
-          <!-- calender to select month and year -->
+          <div class="field is-grouped">
+            <div class="dropdown month" :class="{ 'is-active': isMonthDropdownActive }">
+              <div class="dropdown-trigger">
+                <button class="button" aria-haspopup="true" aria-controls="dropdown-menu"
+                  @click="isMonthDropdownActive = !isMonthDropdownActive">
+                  <span>{{ months[selectedMonth - 1] }}</span>
+                  <span class="icon is-small">
+                    <i class="fas fa-angle-down" aria-hidden="true"></i>
+                  </span>
+                </button>
+                <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                  <div class="dropdown-content">
+                    <a class="dropdown-item" v-for="(month, index) in months" :key="index" :value="index + 1"
+                      @click="updateBudget()">{{ month }}</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="dropdown year" :class="{ 'is-active': isYearDropdownActive }">
+              <div class="dropdown-trigger">
+                <button class="button" aria-haspopup="true" aria-controls="dropdown-menu"
+                  @click="isYearDropdownActive = !isYearDropdownActive">
+                  <span>{{ selectedYear }}</span>
+                  <span class="icon is-small">
+                    <i class="fas fa-angle-down" aria-hidden="true"></i>
+                  </span>
+                </button>
+                <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                  <div class="dropdown-content">
+                    <a class="dropdown-item" v-for="(year, index) in years" :key="index" :value="year"
+                      @click="updateBudget()">{{ year }}</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- calender to select month and year 
           <select v-model="selectedMonth" @change="updateBudget">
             <option
-              v-for="(month, index) in months"
-              :key="index"
-              :value="index + 1"
-            >
+              v-for="(month, index) in months" :key="index" :value="index + 1">
               {{ month }}
             </option>
           </select>
-
           <select v-model="selectedYear" @change="updateBudget">
             <option v-for="(year, index) in years" :key="index" :value="year">
               {{ year }}
             </option>
           </select>
+          -->
         </h3>
       </div>
       <div class="panel-body">
@@ -445,47 +465,32 @@ function deleteRow(categoryIndex: number) {
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody
-            v-for="(month, monthIndex) in session.user?.monthlyData[
-              session.user.monthlyData.findIndex(
-                (yearData) => yearData.year === selectedYear
-              )
-            ]?.months.filter((month) => month.month === selectedMonth)"
-            :key="monthIndex"
-          >
-            <tr
-              v-for="(category, categoryIndex) in month.categories"
-              :key="categoryIndex"
-              :class="{
-                'is-over':
-                  (month.budget[categoryIndex] ?? 0) <
-                  (month.spent[categoryIndex] ?? 0),
-                'is-even':
-                  month.budget[categoryIndex] === month.spent[categoryIndex],
-                'is-below':
-                  (month.budget[categoryIndex] ?? 0) >
-                  (month.spent[categoryIndex] ?? 0),
-                'is-colors-enabled': !isColorsEnabled,
-              }"
-            >
+          <tbody v-for="(month, monthIndex) in session.user?.monthlyData[
+            session.user.monthlyData.findIndex(
+              (yearData) => yearData.year === selectedYear
+            )
+          ]?.months.filter((month) => month.month === selectedMonth)" :key="monthIndex">
+            <tr v-for="(category, categoryIndex) in month.categories" :key="categoryIndex" :class="{
+              'is-over':
+                (month.budget[categoryIndex] ?? 0) <
+                (month.spent[categoryIndex] ?? 0),
+              'is-even':
+                month.budget[categoryIndex] === month.spent[categoryIndex],
+              'is-below':
+                (month.budget[categoryIndex] ?? 0) >
+                (month.spent[categoryIndex] ?? 0),
+              'is-colors-enabled': !isColorsEnabled,
+            }">
               <td>{{ category }}</td>
               <td>${{ month.budget[categoryIndex] }}</td>
               <td>${{ month.spent[categoryIndex] }}</td>
               <td>
-                <div
-                  class="button action"
-                  @click="editRow(categoryIndex)"
-                  :class="{ 'is-info': isColorsEnabled }"
-                >
+                <div class="button action" @click="editRow(categoryIndex)" :class="{ 'is-info': isColorsEnabled }">
                   <span class="icon is-small">
                     <i class="fas fa-edit"></i>
                   </span>
                 </div>
-                <div
-                  class="button action"
-                  @click="deleteRow(categoryIndex)"
-                  :class="{ 'is-danger': isColorsEnabled }"
-                >
+                <div class="button action" @click="deleteRow(categoryIndex)" :class="{ 'is-danger': isColorsEnabled }">
                   <span class="icon is-small">
                     <i class="fas fa-trash"></i>
                   </span>
@@ -494,14 +499,12 @@ function deleteRow(categoryIndex: number) {
             </tr>
           </tbody>
           <tbody>
-            <tr
-              :class="{
-                'is-over': totalBudget < totalSpent,
-                'is-even': totalBudget == totalSpent,
-                'is-below': totalBudget > totalSpent,
-                'is-colors-enabled': !isColorsEnabled,
-              }"
-            >
+            <tr :class="{
+              'is-over': totalBudget < totalSpent,
+              'is-even': totalBudget == totalSpent,
+              'is-below': totalBudget > totalSpent,
+              'is-colors-enabled': !isColorsEnabled,
+            }">
               <td>Total</td>
               <td>${{ totalBudget }}</td>
               <td>${{ totalSpent }}</td>
@@ -512,7 +515,7 @@ function deleteRow(categoryIndex: number) {
       </div>
     </div>
     <div class="buttons">
-      <div class="button" @click="isModalActive = true">Add Row</div>
+      <div class="button" @click="isNewRowModalActive = true">Add Row</div>
       <div class="button" @click="isColorsEnabled = !isColorsEnabled">
         <label class="checkbox" @click.stop>
           <input type="checkbox" v-model="isColorsEnabled" />
@@ -527,58 +530,95 @@ function deleteRow(categoryIndex: number) {
 .panel-title {
   text-align: center;
 }
+
 .buttons {
   display: flex;
   justify-content: center;
-  
+
 }
+
 .is-over {
   background-color: #ff7070;
 }
+
 .is-even {
   background-color: #ffec70;
 }
+
 .is-below {
   background-color: #70ff91;
 }
+
 .is-colors-enabled {
   background-color: #ffffff;
 }
+
 .is-grouped {
   display: flex;
-  align-items: center;
-}
-.dropdown-content {
-  /*make the text in the center*/
   justify-content: center;
+}
 
+.dropdown-content {
+  justify-content: center;
   padding: 0;
   width: 4rem;
+  margin-right: 0.2rem;
+  margin-left: 0.2rem;
 }
-.dropdown-trigger,
+
 .dropdown-menu {
-  margin: 0;
+  min-width: 0;
   padding: 0;
 }
+
+.is-grouped .button {
+  margin-right: .2rem;
+  margin-left: .2rem;
+}
+
 .dropdown-item {
   padding: 0.2rem;
   text-align: center;
 }
+
 .dropdown-item:hover {
   background-color: #000000;
   color: #ffffff;
 }
+
 .button,
 .button:hover,
 .input,
-.dropdown-content{
+.dropdown-content {
   border: 1px solid #000000;
 }
+
 .action {
   margin: 0 0.2rem;
 }
+
 .table.is-bordered td,
 .table.is-bordered th {
   border: 1px solid #000000;
 }
-</style>
+
+button.button {
+  width: 4rem;
+}
+
+.month {
+  margin-right: 1rem;
+}
+
+.month button.button,
+.year button.button {
+  margin-top: .5rem;
+  width: 8rem;
+}
+
+.month .dropdown-menu,
+.year .dropdown-menu,
+.month .dropdown-content,
+.year .dropdown-content {
+  width: 8rem;
+}</style>

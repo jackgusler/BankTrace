@@ -1,58 +1,34 @@
 <script setup lang="ts">
 import { RouterLink } from "vue-router";
 import LoginBadge from "./LoginBadge.vue";
-//import { getSession } from "@/models/session";
-import { ref } from "vue";
-
-//const session = getSession();
-const isActive = ref(false);
 </script>
 
 <template>
-    <div>
-        <nav class="navbar is-black" role="navigation" aria-label="main navigation">
-          <div class="navbar-brand">
-            <RouterLink class="navbar-item" to="/">
-              <img
-                src="https://bulma.io/images/bulma-logo-white.png"
-                width="112"
-                height="28"
-              />
-            </RouterLink>
-            <a
-              role="button"
-              class="navbar-burger"
-              :class="{ 'is-active': isActive }"
-              @click="isActive = !isActive"
-              aria-label="menu"
-              aria-expanded="false"
-              data-target="navbarBasicExample"
-            >
-              <span aria-hidden="true"></span>
-              <span aria-hidden="true"></span>
-              <span aria-hidden="true"></span>
-            </a>
-          </div>
-          <div
-            class="navbar-menu"
-            id="navbarMenu"
-            :class="{ 'is-active': isActive }"
-          >
-            <div class="navbar-start">
-              <RouterLink class="navbar-item" to="/my-workouts"
-                >My Workouts</RouterLink
-              >
-              <RouterLink class="navbar-item" to="/statistics"
-                >Stats</RouterLink
-              >
-              <RouterLink class="navbar-item" to="/friends">Friends</RouterLink>
-            </div>
-            <LoginBadge />
-          </div>
-        </nav>
-      </div>
+  <nav class="navbar is-black is-flex-touch">
+    <div class="navbar-menu is-flex-touch">
+      <div class="navbar-start">
+        <RouterLink class="navbar-item" to="/">
+          <span class="icon">
+            <i class="fas fa-house"></i>
+          </span>
+        </RouterLink>
+        </div>
+        <div class="navbar-end">
+          <LoginBadge />
+        </div>
+    </div>
+  </nav>
 </template>
 
 <style scoped>
-
+.navbar-menu{
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 10px;
+  background-color: #1a1a1a;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
 </style>
