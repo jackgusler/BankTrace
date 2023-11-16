@@ -6,6 +6,25 @@ onMounted(() => {
   updateBudget();
 });
 
+//if dropdown is active, close it on next click
+document.addEventListener("click", (e) => {
+  if ((e.target as Element).closest(".dropdown")) {
+    return
+  }
+  if (isBudgetOperatorActive.value) {
+    isBudgetOperatorActive.value = false;
+  }
+  if (isSpentOperatorActive.value) {
+    isSpentOperatorActive.value = false;
+  }
+  if (isMonthDropdownActive.value) {
+    isMonthDropdownActive.value = false;
+  }
+  if (isYearDropdownActive.value) {
+    isYearDropdownActive.value = false;
+  }
+});
+
 const session = getSession();
 const isColorsEnabled = ref(false);
 const isNewRowModalActive = ref(false);
@@ -60,43 +79,39 @@ const index = ref(0);
 const totalBudget = ref(0);
 const totalSpent = ref(0);
 
-function updateBudget() {
-  // Update the yearIndex and monthIndex
-  yearIndex =
-    session.user?.monthlyData.findIndex(
-      (yearData) => yearData.year === selectedYear.value
-    ) ?? 0;
-  monthIndex =
-    session.user?.monthlyData[yearIndex].months.findIndex(
-      (month) => month.month === selectedMonth.value
-    ) ?? 0;
+function updateSelectedMonth(month: number) {
+  isMonthDropdownActive.value = false;
+  isYearDropdownActive.value = false;
+  selectedMonth.value = month
+  updateBudget();
+}
 
+function updateSelectedYear(year: number) {
+  isMonthDropdownActive.value = false;
+  isYearDropdownActive.value = false;
+  selectedYear.value = year
+  updateBudget();
+}
+
+function updateBudget() {
   // Find the selected month and year in the user's monthlyData
   const selectedMonthData = session.user?.monthlyData.find(
-    (yearData) =>
-      yearData.year === selectedYear.value &&
-      yearData.months.some((month) => month.month === selectedMonth.value)
-  );
+    (yearData) => yearData.year === selectedYear.value
+  )?.months.find((month) => month.month === selectedMonth.value);
 
   // Update totalBudget and totalSpent based on the selected month's data
   if (selectedMonthData) {
-    const selectedMonthBudget = selectedMonthData.months.find(
-      (month) => month.month === selectedMonth.value
+    // Sum up all the budget values for the selected month
+    totalBudget.value = selectedMonthData.budget.reduce(
+      (sum, budget) => sum + budget,
+      0
     );
 
-    if (selectedMonthBudget) {
-      // Sum up all the budget values for the selected month
-      totalBudget.value = selectedMonthBudget.budget.reduce(
-        (sum, budget) => sum + budget,
-        0
-      );
-
-      // Sum up all the spent values for the selected month
-      totalSpent.value = selectedMonthBudget.spent.reduce(
-        (sum, spent) => sum + spent,
-        0
-      );
-    }
+    // Sum up all the spent values for the selected month
+    totalSpent.value = selectedMonthData.spent.reduce(
+      (sum, spent) => sum + spent,
+      0
+    );
   } else {
     // Set default values if data for the selected month is not found
     totalBudget.value = 0;
@@ -119,25 +134,29 @@ function check() {
 
 function closeModal() {
   if (session.user) {
-    // Find the index of the selected year in monthlyData
+    const yearDataIndex = session.user.monthlyData.findIndex(
+      (yearData) => yearData.year === selectedYear.value
+    );
 
-    if (yearIndex !== -1) {
-      // Year exists, find the index of the selected month
+    if (yearDataIndex !== -1) {
+      const monthIndex = session.user.monthlyData[
+        yearDataIndex
+      ].months.findIndex((month) => month.month === selectedMonth.value);
 
       if (monthIndex !== -1) {
         // Month exists, update the existing data
-        session.user.monthlyData[yearIndex].months[monthIndex].categories.push(
+        session.user.monthlyData[yearDataIndex].months[monthIndex].categories.push(
           newCategory.value
         );
-        session.user.monthlyData[yearIndex].months[monthIndex].budget.push(
+        session.user.monthlyData[yearDataIndex].months[monthIndex].budget.push(
           newBudget.value
         );
-        session.user.monthlyData[yearIndex].months[monthIndex].spent.push(
+        session.user.monthlyData[yearDataIndex].months[monthIndex].spent.push(
           newSpent.value
         );
       } else {
         // Month doesn't exist, create a new entry for the selected month
-        session.user.monthlyData[yearIndex].months.push({
+        session.user.monthlyData[yearDataIndex].months.push({
           month: selectedMonth.value,
           categories: [newCategory.value],
           budget: [newBudget.value],
@@ -273,189 +292,184 @@ function deleteRow(categoryIndex: number) {
 </script>
 
 <template>
-  <div>
-    <div class="modal" :class="{ 'is-active': isNewRowModalActive }">
-      <div class="modal-background"></div>
-      <div class="modal-content">
-        <div class="box">
-          <div class="field">
-            <label class="label">Category</label>
-            <div class="control">
-              <input class="input" type="text" placeholder="ex: Groceries" v-model="newCategory" maxLength="15" />
-            </div>
-          </div>
-          <div class="field">
-            <label class="label">Budget</label>
-            <div class="control">
-              <input class="input" type="number" v-model="newBudget" />
-            </div>
-          </div>
-          <div class="field">
-            <label class="label">Spent</label>
-            <div class="control">
-              <input class="input" type="number" v-model="newSpent" />
-            </div>
-          </div>
-          <div class="message is-danger" v-if="isMessageActive">
-            <div class="message-body">
-              A category and budget must be entered.
-            </div>
-          </div>
-          <div class="buttons">
-            <div class="button" @click="check">Save changes</div>
-            <div class="button" @click="closeNewRowModal">Cancel</div>
+  <div class="modal" :class="{ 'is-active': isNewRowModalActive }">
+    <div class="modal-background"></div>
+    <div class="modal-content">
+      <div class="box">
+        <div class="field">
+          <label class="label">Category</label>
+          <div class="control">
+            <input class="input" type="text" placeholder="ex: Groceries" v-model="newCategory" maxLength="15" />
           </div>
         </div>
-      </div>
-      <button class="modal-close is-large" aria-label="close" @click="isNewRowModalActive = false"></button>
-    </div>
-    <div class="modal" :class="{ 'is-active': isWarningModalActive }">
-      <div class="modal-background"></div>
-      <div class="modal-content">
-        <div class="box">
-          <div class="message is-danger">
-            <div class="message-body">
-              Are you sure you want to delete
-              {{
-                session.user?.monthlyData[yearIndex].months[monthIndex]
-                  .categories[index]
-              }}?
-            </div>
+        <div class="field">
+          <label class="label">Budget</label>
+          <div class="control">
+            <input class="input" type="number" v-model="newBudget" />
           </div>
-          <div class="buttons">
-            <div class="button is-danger" @click="closeWarningModal">Yes</div>
-            <div class="button" @click="isWarningModalActive = false">No</div>
+        </div>
+        <div class="field">
+          <label class="label">Spent</label>
+          <div class="control">
+            <input class="input" type="number" v-model="newSpent" />
           </div>
+        </div>
+        <div class="message is-danger" v-if="isMessageActive">
+          <div class="message-body">
+            A category and budget must be entered.
+          </div>
+        </div>
+        <div class="buttons">
+          <div class="button" @click="check">Save changes</div>
+          <div class="button" @click="closeNewRowModal">Cancel</div>
         </div>
       </div>
     </div>
-    <div class="modal" :class="{ 'is-active': isEditModalActive }">
-      <div class="modal-background"></div>
-      <div class="modal-content">
-        <div class="box">
-          <div class="field">
-            <label class="label">Category</label>
-            <div class="control">
-              <input class="input" type="text" placeholder="ex: Groceries" v-model="currentCategory" maxLength="15" />
-            </div>
+  </div>
+  <div class="modal" :class="{ 'is-active': isWarningModalActive }">
+    <div class="modal-background"></div>
+    <div class="modal-content">
+      <div class="box">
+        <div class="message is-danger">
+          <div class="message-body">
+            Are you sure you want to delete
+            {{
+              session.user?.monthlyData[yearIndex].months[monthIndex]
+                .categories[index]
+            }}?
           </div>
-          <div class="field">
-            <label class="label">Budget:</label>
-            <div class="control">
-              <div class="field is-grouped">
-                <input class="input" type="number" v-model="currentBudget" />
-                <div class="dropdown" :class="{ 'is-active': isBudgetOperatorActive }">
-                  <!-- Dropdown to select add or subtract -->
-                  <div class="dropdown-trigger">
-                    <button class="button" aria-haspopup="true" aria-controls="dropdown-menu"
-                      @click="isBudgetOperatorActive = !isBudgetOperatorActive">
-                      <span>{{ operatorBudget }}</span>
-                      <span class="icon is-small">
-                        <i class="fas fa-angle-down" aria-hidden="true"></i>
-                      </span>
-                    </button>
-                    <div class="dropdown-menu" id="dropdown-menu" role="menu">
-                      <div class="dropdown-content">
-                        <a class="dropdown-item" @click="(operatorBudget = '+') && (isBudgetOperatorActive = false)">+</a>
-                        <a class="dropdown-item" @click="(operatorBudget = '-') && (isBudgetOperatorActive = false)">-</a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <input class="input" type="number" v-model="newEditBudget" />
-              </div>
-            </div>
+        </div>
+        <div class="buttons">
+          <div class="button is-danger" @click="closeWarningModal">Yes</div>
+          <div class="button" @click="isWarningModalActive = false">No</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal" :class="{ 'is-active': isEditModalActive }">
+    <div class="modal-background"></div>
+    <div class="modal-content">
+      <div class="box">
+        <div class="field">
+          <label class="label">Category</label>
+          <div class="control">
+            <input class="input" type="text" placeholder="ex: Groceries" v-model="currentCategory" maxLength="15" />
           </div>
-          <div class="field">
-            <label class="label">Spent:</label>
+        </div>
+        <div class="field">
+          <label class="label">Budget:</label>
+          <div class="control">
             <div class="field is-grouped">
-              <input class="input" type="number" v-model="currentSpent" />
-              <div class="dropdown" :class="{ 'is-active': isSpentOperatorActive }">
+              <input class="input" type="number" v-model="currentBudget" />
+              <div class="dropdown" :class="{ 'is-active': isBudgetOperatorActive }">
                 <!-- Dropdown to select add or subtract -->
                 <div class="dropdown-trigger">
                   <button class="button" aria-haspopup="true" aria-controls="dropdown-menu"
-                    @click="isSpentOperatorActive = !isSpentOperatorActive">
-                    <span>{{ operatorSpent }}</span>
+                    @click="isBudgetOperatorActive = !isBudgetOperatorActive">
+                    <span>{{ operatorBudget }}</span>
                     <span class="icon is-small">
                       <i class="fas fa-angle-down" aria-hidden="true"></i>
                     </span>
                   </button>
                   <div class="dropdown-menu" id="dropdown-menu" role="menu">
                     <div class="dropdown-content">
-                      <a class="dropdown-item" @click="(operatorSpent = '+') && (isSpentOperatorActive = false)">+</a>
-                      <a class="dropdown-item" @click="(operatorSpent = '-') && (isSpentOperatorActive = false)">-</a>
+                      <a class="dropdown-item" @click="(operatorBudget = '+') && (isBudgetOperatorActive = false)"
+                        :class="{ 'is-selected': operatorBudget == '+' }">+</a>
+                      <a class="dropdown-item" @click="(operatorBudget = '-') && (isBudgetOperatorActive = false)"
+                        :class="{ 'is-selected': operatorBudget == '-' }">-</a>
                     </div>
                   </div>
                 </div>
               </div>
-              <input class="input" type="number" v-model="newEditSpent" />
+              <input class="input" type="number" v-model="newEditBudget" />
             </div>
           </div>
-          <div class="buttons">
-            <div class="button" @click="closeEditModal">
-              Save changes
+        </div>
+        <div class="field">
+          <label class="label">Spent:</label>
+          <div class="field is-grouped">
+            <input class="input" type="number" v-model="currentSpent" />
+            <div class="dropdown" :class="{ 'is-active': isSpentOperatorActive }">
+              <!-- Dropdown to select add or subtract -->
+              <div class="dropdown-trigger">
+                <button class="button" aria-haspopup="true" aria-controls="dropdown-menu"
+                  @click="isSpentOperatorActive = !isSpentOperatorActive">
+                  <span>{{ operatorSpent }}</span>
+                  <span class="icon is-small">
+                    <i class="fas fa-angle-down" aria-hidden="true"></i>
+                  </span>
+                </button>
+                <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                  <div class="dropdown-content">
+                    <a class="dropdown-item" @click="(operatorSpent = '+') && (isSpentOperatorActive = false)"
+                      :class="{ 'is-selected': operatorSpent == '+' }">+</a>
+                    <a class="dropdown-item" @click="(operatorSpent = '-') && (isSpentOperatorActive = false)"
+                      :class="{ 'is-selected': operatorSpent == '-' }">-</a>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="button" @click="cancelEditModal">Cancel</div>
+            <input class="input" type="number" v-model="newEditSpent" />
           </div>
+        </div>
+        <div class="buttons">
+          <div class="button" @click="closeEditModal">
+            Save changes
+          </div>
+          <div class="button" @click="cancelEditModal">Cancel</div>
         </div>
       </div>
     </div>
-    <div class="panel">
-      <div class="panel-heading">
-        <h3 class="panel-title">
-          {{ session.user?.name }}'s Budget
-          <div class="field is-grouped">
-            <div class="dropdown month" :class="{ 'is-active': isMonthDropdownActive }">
-              <div class="dropdown-trigger">
-                <button class="button" aria-haspopup="true" aria-controls="dropdown-menu"
-                  @click="isMonthDropdownActive = !isMonthDropdownActive">
-                  <span>{{ months[selectedMonth - 1] }}</span>
-                  <span class="icon is-small">
-                    <i class="fas fa-angle-down" aria-hidden="true"></i>
-                  </span>
-                </button>
-                <div class="dropdown-menu" id="dropdown-menu" role="menu">
-                  <div class="dropdown-content">
-                    <a class="dropdown-item" v-for="(month, index) in months" :key="index" :value="index + 1"
-                      @click="updateBudget()">{{ month }}</a>
-                  </div>
-                </div>
+  </div>
+  <div class="panel">
+    <div class="panel-heading">
+      <h3 class="panel-title">
+        {{ session.user?.name }}'s Budget
+        <div class="field is-grouped">
+          <!-- calender to select month and year using bulmas dropdown -->
+          <div class="dropdown month" :class="{ 'is-active': isMonthDropdownActive }">
+            <div class="dropdown-trigger">
+              <div class="button" aria-haspopup="true" aria-controls="year-dropdown"
+                @click="isMonthDropdownActive = !isMonthDropdownActive">
+                <span>{{ months[selectedMonth - 1] }}</span>
+                <span class="icon is-small">
+                  <i class="fas fa-angle-down" aria-hidden="true"></i>
+                </span>
               </div>
-            </div>
-            <div class="dropdown year" :class="{ 'is-active': isYearDropdownActive }">
-              <div class="dropdown-trigger">
-                <button class="button" aria-haspopup="true" aria-controls="dropdown-menu"
-                  @click="isYearDropdownActive = !isYearDropdownActive">
-                  <span>{{ selectedYear }}</span>
-                  <span class="icon is-small">
-                    <i class="fas fa-angle-down" aria-hidden="true"></i>
-                  </span>
-                </button>
-                <div class="dropdown-menu" id="dropdown-menu" role="menu">
-                  <div class="dropdown-content">
-                    <a class="dropdown-item" v-for="(year, index) in years" :key="index" :value="year"
-                      @click="updateBudget()">{{ year }}</a>
-                  </div>
+              <div class="dropdown-menu" id="month-dropdown" role="menu">
+                <div class="dropdown-content">
+                  <a class="dropdown-item" @click="updateSelectedMonth(index + 1)" v-for="(month, index) in months"
+                    :key="index" :class="{ 'is-selected': index + 1 == selectedMonth }">
+                    {{ month }}
+                  </a>
                 </div>
               </div>
             </div>
           </div>
-          <!-- calender to select month and year 
-          <select v-model="selectedMonth" @change="updateBudget">
-            <option
-              v-for="(month, index) in months" :key="index" :value="index + 1">
-              {{ month }}
-            </option>
-          </select>
-          <select v-model="selectedYear" @change="updateBudget">
-            <option v-for="(year, index) in years" :key="index" :value="year">
-              {{ year }}
-            </option>
-          </select>
-          -->
-        </h3>
-      </div>
-      <div class="panel-body">
+          <div class="dropdown year" :class="{ 'is-active': isYearDropdownActive }">
+            <div class="dropdown-trigger">
+              <div class="button" aria-haspopup="true" aria-controls="year-dropdown"
+                @click="isYearDropdownActive = !isYearDropdownActive">
+                <span>{{ selectedYear }}</span>
+                <span class="icon is-small">
+                  <i class="fas fa-angle-down" aria-hidden="true"></i>
+                </span>
+              </div>
+            </div>
+            <div class="dropdown-menu" id="year-dropdown" role="menu">
+              <div class="dropdown-content">
+                <a class="dropdown-item" @click="updateSelectedYear(year)" v-for="year in years" :key="year"
+                  :class="{ 'is-selected': year == selectedYear }">
+                  {{ year }}
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </h3>
+    </div>
+    <div class="panel-body">
+      <div class="table-container">
         <table class="table is-fullwidth is-bordered is-narrow">
           <thead>
             <tr>
@@ -499,7 +513,7 @@ function deleteRow(categoryIndex: number) {
             </tr>
           </tbody>
           <tbody>
-            <tr :class="{
+            <tr class="total" :class="{
               'is-over': totalBudget < totalSpent,
               'is-even': totalBudget == totalSpent,
               'is-below': totalBudget > totalSpent,
@@ -534,7 +548,7 @@ function deleteRow(categoryIndex: number) {
 .buttons {
   display: flex;
   justify-content: center;
-
+  margin-top: 1rem;
 }
 
 .is-over {
@@ -581,13 +595,7 @@ function deleteRow(categoryIndex: number) {
   text-align: center;
 }
 
-.dropdown-item:hover {
-  background-color: #000000;
-  color: #ffffff;
-}
-
 .button,
-.button:hover,
 .input,
 .dropdown-content {
   border: 1px solid #000000;
@@ -610,8 +618,8 @@ button.button {
   margin-right: 1rem;
 }
 
-.month button.button,
-.year button.button {
+.month .button,
+.year .button {
   margin-top: .5rem;
   width: 8rem;
 }
@@ -621,4 +629,46 @@ button.button {
 .month .dropdown-content,
 .year .dropdown-content {
   width: 8rem;
-}</style>
+}
+
+.month .dropdown-content a,
+.year .dropdown-content a,
+.dropdown-item {
+  border-bottom: 1px solid #000000;
+}
+
+.is-selected {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+.panel {
+  height: calc(100vh - 52px);
+}
+
+.table-container {
+  height: calc(100vh - 52px - 11rem);
+  overflow: auto;
+}
+
+thead th {
+  position: sticky;
+  top: 0;
+  background-color: #ffffff;
+  box-shadow: 0px 2px 2px -1px rgba(0, 0, 0, 0.2);
+  z-index: 19;
+}
+
+.total td {
+  position: sticky;
+  bottom: 0;
+  background-color: #ffffff;
+  box-shadow: 0px -2px 2px -1px rgba(0, 0, 0, 0.2);
+  z-index: 19;
+}
+
+thead tr,
+.total td {
+  border: 2px solid #000;
+}
+</style>

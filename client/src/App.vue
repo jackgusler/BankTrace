@@ -16,10 +16,6 @@ import NavBar from './components/NavBar.vue';
 </template>
 
 <style scoped>
-  body {
-    background-color: azure;
-  }
-
   .container {
     background-color: white;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
