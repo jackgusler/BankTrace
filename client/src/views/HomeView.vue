@@ -126,6 +126,14 @@ function updateBudget() {
       (sum, spent) => sum + spent,
       0
     );
+
+    // Update the index values for the selected month and year
+    yearIndex = session.user?.monthlyData.findIndex(
+      (yearData) => yearData.year === selectedYear.value
+    ) ?? 0
+    monthIndex = session.user?.monthlyData[yearIndex].months.findIndex(
+      (month) => month.month === selectedMonth.value
+    ) ?? 0
   } else {
     // Set default values if data for the selected month is not found
     totalBudget.value = 0;
