@@ -23,9 +23,9 @@
             },
             {
                 "month": 11,
-                "categories": ["Spending Money", "Food", "Gas", "Laundry", "Rent", "Utilities", "Misc", "Savings", "Income", "Other", "Other", "Other", "Other", "Other", "Other", "Other", "Other", "Other", "Other", "Other"],
-                "budget": [100, 500, 60, 20, 1000],
-                "spent": [30, 540, 30, 5, 1000]
+                "categories": ["Rent+Wifi+Elect", "Groceries", "Gas", "Laundry", "Spending"],
+                "budget": [750, 540, 40, 20, 100],
+                "spent": [828.33, 388.08, 33.12, 5, 495.24]
             }
           ]
         }
