@@ -14,6 +14,12 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: () => import('../views/LoginView.vue')
+    },
+    {
+      path: '/account',
+      name: 'account',
+      component: () => import('../views/AccountView.vue'),
+      beforeEnter: requireLogin
     }
   ]
 })
@@ -21,6 +27,7 @@ const router = createRouter({
 function requireLogin(to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) {
   
   const session = getSession();
+  console.log(session.user?.name);
   if(!session.user){
     session.redirectUrl = to.fullPath;
     next('/login');

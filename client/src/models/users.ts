@@ -26,3 +26,8 @@ export function getUsers(): User[] {
 export function getUserByEmail(email: string): User | undefined {
   return getUsers().find((x) => x.email === email);
 }
+
+export function addUser(user: User) {
+  const users = getUsers();
+  users.push(user);
+}

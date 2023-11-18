@@ -663,12 +663,6 @@ function deleteRow(categoryIndex: number) {
   text-align: center;
 }
 
-.buttons {
-  display: flex;
-  justify-content: center;
-  margin-top: 1rem;
-}
-
 .is-over {
   background-color: #ff7070;
 }
@@ -711,12 +705,6 @@ function deleteRow(categoryIndex: number) {
 .dropdown-item {
   padding: 0.2rem;
   text-align: center;
-}
-
-.button,
-.input,
-.dropdown-content {
-  border: 1px solid #000000;
 }
 
 .action {
