@@ -17,7 +17,7 @@ const session = getSession();
           </span>
         </RouterLink>
       </div>
-      <div class="navbar-brand">
+      <div class="navbar-brand" style="flex-shrink: 0;">
         <img src="/BankTrace-logos_white.png" alt="logo" class="logo">
       </div>
       <div class="navbar-end" :class="{ 'is-selected': $route.path === '/account' }">
@@ -40,16 +40,23 @@ const session = getSession();
 }
 
 .is-selected {
-  background-color: #4a4a4a;
-  color: #1a1a1a;
+  background-color: #000000;
+  color: #ffffff;
+  border-radius: 100px;
 }
 
 a.navbar-item:focus {
-  background-color: #4a4a4a;
-  color: #1a1a1a;
+  background-color: #000000;
+  color: #ffffff;
+  /*round corners*/
+  border-radius: 5px;
+}
+.navbar-item{
+  color: #ffffff;
 }
 
 .logo {
-  height: 3.2rem;
+  margin-top: 5px;
+  height: 2.5rem;
   width: auto;
 }</style>

@@ -25,7 +25,7 @@ const logout = () => {
             <p class="panel-heading is-centered">
                 {{ session.user?.name }}'s Account
             </p>
-            <div class="panel-block">
+            <div class="panel-body">
                 <div class="box">
                     <div class="content">
                         <p class="title is-4">Name</p>
@@ -44,9 +44,7 @@ const logout = () => {
                     </div>
                 </div>
             </div>
-            <div class="panel-block is-centered">
-                <div class="button" @click="logout">Logout</div>
-            </div>
+            <div class="button is-bottom is-centered" @click="logout">Logout</div>
         </div>
     </div>
 </template>
@@ -56,11 +54,20 @@ const logout = () => {
     text-align: center;
     justify-content: center;
 }
-.box{
+
+.box {
     background: transparent;
     border: 0;
     box-shadow: none;
     width: 100%;
     margin: 0 auto;
+}
+
+.is-bottom {
+    margin-bottom: 0.5rem;
+    margin-left: calc(50% - 40px);
+}
+.panel{
+    height: calc(100vh - 4rem);
 }
 </style>
