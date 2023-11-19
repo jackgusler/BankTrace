@@ -3,6 +3,7 @@ import { RouterLink } from "vue-router";
 import LoginBadge from "./LoginBadge.vue";
 import { getSession } from "@/models/session";
 
+
 const session = getSession();
 </script>
 
@@ -15,16 +16,19 @@ const session = getSession();
             <i class="fas fa-house"></i>
           </span>
         </RouterLink>
-        </div>
-        <div class="navbar-end" :class="{ 'is-selected': $route.path === '/account' }">
-          <LoginBadge />
-        </div>
+      </div>
+      <div class="navbar-brand">
+        <img src="/BankTrace-logos_white.png" alt="logo" class="logo">
+      </div>
+      <div class="navbar-end" :class="{ 'is-selected': $route.path === '/account' }">
+        <LoginBadge />
+      </div>
     </div>
   </nav>
 </template>
 
 <style scoped>
-.navbar-menu{
+.navbar-menu {
   justify-content: space-between;
   width: 100%;
   padding: 0 10px;
@@ -34,12 +38,18 @@ const session = getSession();
   font-weight: bold;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
-.is-selected{
+
+.is-selected {
   background-color: #4a4a4a;
   color: #1a1a1a;
 }
-a.navbar-item:focus{
+
+a.navbar-item:focus {
   background-color: #4a4a4a;
   color: #1a1a1a;
 }
-</style>
+
+.logo {
+  height: 3.2rem;
+  width: auto;
+}</style>
