@@ -67,7 +67,7 @@ const logout = () => {
     margin-bottom: 0.5rem;
     margin-left: calc(50% - 40px);
 }
-.panel{
-    height: calc(100vh - 4rem);
+.panel-body{
+    height: calc(100vh - 52px - 55px - 40px - 18px);
 }
 </style>

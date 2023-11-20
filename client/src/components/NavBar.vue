@@ -32,7 +32,7 @@ const session = getSession();
   justify-content: space-between;
   width: 100%;
   padding: 0 10px;
-  background-color: #1a1a1a;
+  background-color: #000000;
   color: white;
   font-size: 1.5rem;
   font-weight: bold;
@@ -40,16 +40,13 @@ const session = getSession();
 }
 
 .is-selected {
-  background-color: #000000;
-  color: #ffffff;
-  border-radius: 100px;
+  background-color: #ffffff;
+  color: #000000;
 }
 
 a.navbar-item:focus {
-  background-color: #000000;
-  color: #ffffff;
-  /*round corners*/
-  border-radius: 5px;
+  background-color: #ffffff;
+  color: #000000;
 }
 .navbar-item{
   color: #ffffff;
