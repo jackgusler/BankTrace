@@ -1,4 +1,4 @@
-import data from "../data/users.json";
+import { api } from "./session";
 export interface User {
   id?: number;
   name: string;
@@ -19,15 +19,21 @@ export interface MonthlyBudget {
   spent: number[];
 }
 
-export function getUsers(): User[] {
-  return data.users;
+export async function getUsers(): Promise<User[]> {
+  const users = await api("users");
+  console.log(users);
+  if (!users) {
+    throw new Error("Users is undefined");
+  }
+  return users;
 }
 
-export function getUserByEmail(email: string): User | undefined {
-  return getUsers().find((x) => x.email === email);
+export async function getUserByEmail(email: string): Promise<User | undefined> {
+  const users = await getUsers();
+  return users.find((user) => user.email === email);
 }
 
-export function addUser(user: User) {
-  const users = getUsers();
+export async function addUser(user: User) {
+  const users = await getUsers();
   users.push(user);
 }

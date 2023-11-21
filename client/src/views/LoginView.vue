@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { login, signUp } from '@/models/session';
+import { useLogin, signUp } from '@/models/session';
 import { getUserByEmail } from '@/models/users';
 import router from '@/router';
+
+const { login, logout } = useLogin();
 
 const email = ref('');
 const password = ref('');
@@ -15,12 +17,14 @@ const errorMessage = ref('');
 const isLoginSubmitted = ref(false);
 const isSignUpSubmitted = ref(false);
 
-function validateLogin() {
+async function validateLogin() {
+    const user = await getUserByEmail(email.value);
+    console.log(user);
     if (email.value === '' || password.value === '') {
         errorMessage.value = 'Email and password cannot be empty.';
         return false;
         /*check if account exists in database by email and password*/
-    } else if (!getUserByEmail(email.value) || getUserByEmail(email.value)?.password !== password.value) {
+    } else if (!user || user?.password !== password.value) {
         errorMessage.value = 'That email or password does not exist. Please sign up or try again.';
         return false;
     }
@@ -28,7 +32,7 @@ function validateLogin() {
     return true;
 }
 
-function validateSignUp() {
+async function validateSignUp() {
     if (isSignUp.value) {
         if (signUpName.value.length < 3) {
             errorMessage.value = 'Name must be at least 3 characters long.';
@@ -53,20 +57,21 @@ function validateSignUp() {
     return true;
 }
 
-async function doLogin() {
+const doLogin = async () => {
     isLoginSubmitted.value = true;
-    if (!validateLogin()) return;
+    if (!(await validateLogin())) return;
     isLoginSubmitted.value = false;
+    console.log(email.value, password.value)
     login(email.value, password.value);
     router.push('/');
 }
 
-async function doSignUp() {
+const doSignUp = async () => {
     isSignUpSubmitted.value = true;
-    if (!validateSignUp()) return;
+    if (!(await validateSignUp())) return;
     isSignUpSubmitted.value = false;
     signUp(signUpName.value, signUpEmail.value, signUpPassword.value);
-    await login(signUpEmail.value, signUpPassword.value);
+    login(signUpEmail.value, signUpPassword.value);
     router.push('/');
 }
 

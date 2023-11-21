@@ -1,34 +1,24 @@
 const express = require('express');
-const dynamoDB = require('../models/dynamoDB'); // Import the DynamoDB module
+const { getAll, get, search, create, update, remove, login } = require('../models/users'); // Import the User model
 const router = express.Router();
 
 router
   .get('/', async (req, res, next) => {
+    console.log('GET /')
     try {
-      // Example: Querying all items from DynamoDB
-      const params = {
-        TableName: 'Users',
-      };
-
-      const data = await dynamoDB.scan(params).promise();
-      res.send(data.Items);
+      const users = await getAll();
+      res.send(users);
     } catch (error) {
-      console.error('Error fetching all users:', error);
+      console.error('Error fetching users:', error);
       res.status(500).send({ error: 'Internal Server Error' });
     }
   })
 
   .get('/search', async (req, res, next) => {
+    console.log('GET /search')
     try {
-      // Example: Searching for items in DynamoDB
-      const params = {
-        TableName: 'Users',
-        // Add other query parameters as needed
-      };
-
-      const data = await dynamoDB.scan(params).promise();
-      // Process data or filter based on req.query.q
-      res.send(data.Items);
+      const users = await search(req.query);
+      res.send(users);
     } catch (error) {
       console.error('Error searching for users:', error);
       res.status(500).send({ error: 'Internal Server Error' });
@@ -36,37 +26,56 @@ router
   })
 
   .get('/:id', async (req, res, next) => {
+    console.log('GET /:id')
     try {
-      // Example: Getting a single item by ID from DynamoDB
-      const params = {
-        TableName: 'Users',
-        Key: {
-          id: +req.params.id,
-        },
-      };
-
-      const data = await dynamoDB.get(params).promise();
-      res.send(data.Item);
+      const user = await get(+req.params.id);
+      res.send(user);
     } catch (error) {
       console.error('Error fetching user by ID:', error);
       res.status(500).send({ error: 'Internal Server Error' });
     }
   })
 
-  // Other routes (post, patch, delete) can be adapted similarly
-
   .post('/', async (req, res, next) => {
+    console.log('POST /')
     try {
-      // Example: Creating a new item in DynamoDB
-      const params = {
-        TableName: 'Users',
-        Item: req.body, // Assuming req.body contains the user data
-      };
-
-      await dynamoDB.put(params).promise();
-      res.send(params.Item);
+      const newUser = await create(req.body);
+      res.send(newUser);
     } catch (error) {
       console.error('Error creating user:', error);
+      res.status(500).send({ error: 'Internal Server Error' });
+    }
+  })
+
+  .post('/login', async (req, res, next) => {
+    console.log('POST /login')
+    try {
+      const user = await login(req.body.email, req.body.password);
+      res.send(user);
+    } catch (error) {
+      console.error('Error logging in user:', error);
+      res.status(500).send({ error: 'Internal Server Error' });
+    }
+  })
+
+  .patch('/:id', async (req, res, next) => {
+    console.log('PATCH /:id')
+    try {
+      const updatedUser = await update({ ...req.body, id: +req.params.id });
+      res.send(updatedUser);
+    } catch (error) {
+      console.error('Error updating user:', error);
+      res.status(500).send({ error: 'Internal Server Error' });
+    }
+  })
+
+  .delete('/:id', async (req, res, next) => {
+    console.log('DELETE /:id')
+    try {
+      const deletedUser = await remove(+req.params.id);
+      res.send(deletedUser);
+    } catch (error) {
+      console.error('Error deleting user:', error);
       res.status(500).send({ error: 'Internal Server Error' });
     }
   });

@@ -4,16 +4,17 @@ import router from '@/router';
 import { computed } from 'vue';
 import { change } from '@/models/utilities';
 import ChangeModal from '@/components/ChangeModal.vue';
+import { useLogout } from '@/models/session';
 
 const session = getSession();
+const { logout } = useLogout();
 
 const blockedPassword = computed(() => {
     return session.user?.password.replace(/./g, '*');
 });
 
-const logout = () => {
-    router.push('/login');
-    session.user = null;
+const doLogout = () => {
+    logout()
 }
 
 </script>
@@ -44,7 +45,7 @@ const logout = () => {
                     </div>
                 </div>
             </div>
-            <div class="button is-bottom is-centered" @click="logout">Logout</div>
+            <div class="button is-bottom is-centered" @click="doLogout">Logout</div>
         </div>
     </div>
 </template>
