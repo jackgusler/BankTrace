@@ -2,11 +2,12 @@
 
 const path = require("path");
 const express = require("express");
+const serverless = require("serverless-http");
 require("dotenv").config();
 const userController = require("./controllers/users");
 const app = express();
 
-const PORT = process.env.PORT ?? 3000;
+// const PORT = process.env.PORT ?? 3000;
 
 app
   .use("/", express.static(path.join(__dirname, "../client/dist/")))
@@ -33,8 +34,10 @@ app.use((err, req, res, next) => {
 
 console.log("1: Trying to start server...");
 
-app.listen(PORT, () => {
-  console.log(`2: Server is running at http://localhost:${PORT}`);
-});
+// app.listen(PORT, () => {
+//   console.log(`2: Server is running at http://localhost:${PORT}`);
+// });
 
 console.log("3: End of file, waiting for requests...");
+
+module.exports.handler = serverless(app);
