@@ -246,29 +246,6 @@ function closeModal() {
 
 function closeEditModal() {
   //instead of pushing new values, like closeModal(), replace the old ones
-  // if (session.user) {
-  //   if (operatorBudget.value == "+") {
-  //     session.user.monthlyData[yearIndex].months[monthIndex].budget[
-  //       index.value
-  //     ] = currentBudget.value + newEditBudget.value;
-  //   } else {
-  //     session.user.monthlyData[yearIndex].months[monthIndex].budget[
-  //       index.value
-  //     ] = currentBudget.value - newEditBudget.value;
-  //   }
-  //   if (operatorSpent.value == "-") {
-  //     session.user.monthlyData[yearIndex].months[monthIndex].spent[
-  //       index.value
-  //     ] = currentSpent.value - newEditSpent.value;
-  //   } else {
-  //     session.user.monthlyData[yearIndex].months[monthIndex].spent[
-  //       index.value
-  //     ] = currentSpent.value + newEditSpent.value;
-  //   }
-  //   session.user.monthlyData[yearIndex].months[monthIndex].categories[
-  //     index.value
-  //   ] = currentCategory.value;
-  // }
 
   if (session.user) {
     // Update budget
@@ -325,30 +302,51 @@ function cancelEditModal() {
 }
 
 function closeWarningModal() {
-  session.user?.monthlyData[
-    session.user.monthlyData.findIndex(
+  if (session.user) {
+    const yearIndex = session.user.monthlyData.findIndex(
       (yearData) => yearData.year === selectedYear.value
-    )
-  ]?.months
-    .filter((month) => month.month === selectedMonth.value)[0]
-    .categories.splice(index.value, 1);
-  session.user?.monthlyData[
-    session.user.monthlyData.findIndex(
-      (yearData) => yearData.year === selectedYear.value
-    )
-  ]?.months
-    .filter((month) => month.month === selectedMonth.value)[0]
-    .budget.splice(index.value, 1);
-  session.user?.monthlyData[
-    session.user.monthlyData.findIndex(
-      (yearData) => yearData.year === selectedYear.value
-    )
-  ]?.months
-    .filter((month) => month.month === selectedMonth.value)[0]
-    .spent.splice(index.value, 1);
+    );
 
-  updateBudget();
-  isWarningModalActive.value = false;
+    if (yearIndex !== -1) {
+      const monthData = session.user.monthlyData[yearIndex].months.find(
+        (month) => month.month === selectedMonth.value
+      );
+
+      if (monthData) {
+        // Update categories, budget, and spent by removing the item at the specified index
+        const updatedCategories = [...monthData.categories];
+        updatedCategories.splice(index.value, 1);
+
+        const updatedBudget = [...monthData.budget];
+        updatedBudget.splice(index.value, 1);
+
+        const updatedSpent = [...monthData.spent];
+        updatedSpent.splice(index.value, 1);
+
+        // Update the server data using useUpdateUser
+        updateUser(
+          String(session.user.id),
+          session.user.name,
+          session.user.email,
+          session.user.password,
+          // Construct the updated monthlyData
+          session.user.monthlyData.map((yearData, idx) => ({
+            ...yearData,
+            months: idx === yearIndex
+              ? yearData.months.map((existingMonth) => existingMonth.month === selectedMonth.value
+                  ? { ...existingMonth, categories: updatedCategories, budget: updatedBudget, spent: updatedSpent }
+                  : existingMonth
+                )
+              : yearData.months
+          }))
+        );
+
+        // Update any other necessary state or perform additional actions
+        updateBudget();
+        isWarningModalActive.value = false;
+      }
+    }
+  }
 }
 
 function editRow(categoryIndex: number) {
