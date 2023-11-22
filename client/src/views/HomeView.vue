@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import { getSession } from "@/models/session";
+import { useUpdateUser } from "@/models/session";
+
+const { updateUser } = useUpdateUser();
 
 onMounted(() => {
   updateBudget();
@@ -161,43 +164,75 @@ function closeModal() {
     );
 
     if (yearDataIndex !== -1) {
-      const monthIndex = session.user.monthlyData[
-        yearDataIndex
-      ].months.findIndex((month) => month.month === selectedMonth.value);
+      const monthIndex = session.user.monthlyData[yearDataIndex].months.findIndex(
+        (month) => month.month === selectedMonth.value
+      );
 
       if (monthIndex !== -1) {
         // Month exists, update the existing data
-        session.user.monthlyData[yearDataIndex].months[
-          monthIndex
-        ].categories.push(newCategory.value);
-        session.user.monthlyData[yearDataIndex].months[monthIndex].budget.push(
-          newBudget.value
-        );
-        session.user.monthlyData[yearDataIndex].months[monthIndex].spent.push(
-          newSpent.value
+        const updatedCategories = session.user.monthlyData[yearDataIndex].months[monthIndex].categories.concat(newCategory.value);
+        const updatedBudget = session.user.monthlyData[yearDataIndex].months[monthIndex].budget.concat(newBudget.value);
+        const updatedSpent = session.user.monthlyData[yearDataIndex].months[monthIndex].spent.concat(newSpent.value);
+
+        const updatedMonthlyData = [...session.user.monthlyData];
+        updatedMonthlyData[yearDataIndex].months[monthIndex] = {
+          month: selectedMonth.value,
+          categories: updatedCategories,
+          budget: updatedBudget,
+          spent: updatedSpent,
+        };
+
+        updateUser(
+          String(session.user.id),
+          session.user.name,
+          session.user.email,
+          session.user.password,
+          updatedMonthlyData
         );
       } else {
         // Month doesn't exist, create a new entry for the selected month
-        session.user.monthlyData[yearDataIndex].months.push({
+        const newMonthData = {
           month: selectedMonth.value,
           categories: [newCategory.value],
           budget: [newBudget.value],
           spent: [newSpent.value],
-        });
+        };
+
+        const updatedMonthlyData = [...session.user.monthlyData];
+        updatedMonthlyData[yearDataIndex].months.push(newMonthData);
+
+        updateUser(
+          String(session.user.id),
+          session.user.name,
+          session.user.email,
+          session.user.password,
+          updatedMonthlyData
+        );
       }
     } else {
       // Year doesn't exist, create a new entry for the selected year and month
-      session.user.monthlyData.push({
+      const newMonthData = {
+        month: selectedMonth.value,
+        categories: [newCategory.value],
+        budget: [newBudget.value],
+        spent: [newSpent.value],
+      };
+
+      const newYearData = {
         year: selectedYear.value,
-        months: [
-          {
-            month: selectedMonth.value,
-            categories: [newCategory.value],
-            budget: [newBudget.value],
-            spent: [newSpent.value],
-          },
-        ],
-      });
+        months: [newMonthData],
+      };
+
+      const updatedMonthlyData = [...session.user.monthlyData];
+      updatedMonthlyData.push(newYearData);
+
+      updateUser(
+        String(session.user.id),
+        session.user.name,
+        session.user.email,
+        session.user.password,
+        updatedMonthlyData
+      );
     }
     totalBudget.value += Number(newBudget.value);
     totalSpent.value += Number(newSpent.value);
@@ -211,29 +246,68 @@ function closeModal() {
 
 function closeEditModal() {
   //instead of pushing new values, like closeModal(), replace the old ones
+  // if (session.user) {
+  //   if (operatorBudget.value == "+") {
+  //     session.user.monthlyData[yearIndex].months[monthIndex].budget[
+  //       index.value
+  //     ] = currentBudget.value + newEditBudget.value;
+  //   } else {
+  //     session.user.monthlyData[yearIndex].months[monthIndex].budget[
+  //       index.value
+  //     ] = currentBudget.value - newEditBudget.value;
+  //   }
+  //   if (operatorSpent.value == "-") {
+  //     session.user.monthlyData[yearIndex].months[monthIndex].spent[
+  //       index.value
+  //     ] = currentSpent.value - newEditSpent.value;
+  //   } else {
+  //     session.user.monthlyData[yearIndex].months[monthIndex].spent[
+  //       index.value
+  //     ] = currentSpent.value + newEditSpent.value;
+  //   }
+  //   session.user.monthlyData[yearIndex].months[monthIndex].categories[
+  //     index.value
+  //   ] = currentCategory.value;
+  // }
+
   if (session.user) {
-    if (operatorBudget.value == "+") {
-      session.user.monthlyData[yearIndex].months[monthIndex].budget[
-        index.value
-      ] = currentBudget.value + newEditBudget.value;
-    } else {
-      session.user.monthlyData[yearIndex].months[monthIndex].budget[
-        index.value
-      ] = currentBudget.value - newEditBudget.value;
-    }
-    if (operatorSpent.value == "-") {
-      session.user.monthlyData[yearIndex].months[monthIndex].spent[
-        index.value
-      ] = currentSpent.value - newEditSpent.value;
-    } else {
-      session.user.monthlyData[yearIndex].months[monthIndex].spent[
-        index.value
-      ] = currentSpent.value + newEditSpent.value;
-    }
-    session.user.monthlyData[yearIndex].months[monthIndex].categories[
-      index.value
-    ] = currentCategory.value;
+    // Update budget
+    const updatedBudget = operatorBudget.value === "+" ?
+      currentBudget.value + newEditBudget.value :
+      currentBudget.value - newEditBudget.value;
+
+    // Update spent
+    const updatedSpent = operatorSpent.value === "-" ?
+      currentSpent.value - newEditSpent.value :
+      currentSpent.value + newEditSpent.value;
+
+    // Update categories
+    const updatedCategories = [...session.user.monthlyData[yearIndex].months[monthIndex].categories];
+    updatedCategories[index.value] = currentCategory.value;
+
+    // Create the updated monthlyData
+    const updatedMonthlyData = [...session.user.monthlyData];
+    updatedMonthlyData[yearIndex].months[monthIndex] = {
+      ...updatedMonthlyData[yearIndex].months[monthIndex],
+      budget: [...updatedMonthlyData[yearIndex].months[monthIndex].budget],
+      spent: [...updatedMonthlyData[yearIndex].months[monthIndex].spent],
+      categories: updatedCategories,
+    };
+
+    // Update the specific values in the updatedMonthlyData
+    updatedMonthlyData[yearIndex].months[monthIndex].budget[index.value] = updatedBudget;
+    updatedMonthlyData[yearIndex].months[monthIndex].spent[index.value] = updatedSpent;
+
+    // Call updateUser with the updated monthlyData
+    updateUser(
+      String(session.user.id),
+      session.user.name,
+      session.user.email,
+      session.user.password,
+      updatedMonthlyData
+    );
   }
+
   updateBudget();
   newEditBudget.value = 0;
   newEditSpent.value = 0;

@@ -44,12 +44,10 @@ const session = getSession();
   color: #000000;
 }
 
-a.navbar-item:focus {
+a.navbar-item:focus,
+a.navbar-item:active {
   background-color: #ffffff;
   color: #000000;
-}
-.navbar-item{
-  color: #ffffff;
 }
 
 .logo {

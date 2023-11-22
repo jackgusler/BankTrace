@@ -20,8 +20,7 @@ export interface MonthlyBudget {
 }
 
 export async function getUsers(): Promise<User[]> {
-  const users = await api("users");
-  console.log(users);
+  const users = await api("users", undefined, "GET");
   if (!users) {
     throw new Error("Users is undefined");
   }

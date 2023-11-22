@@ -1,10 +1,9 @@
 const express = require('express');
-const { getAll, get, search, create, update, remove, login } = require('../models/users'); // Import the User model
+const { getAll, get, query, create, update, remove, login } = require('../models/users'); // Import the User model
 const router = express.Router();
 
 router
   .get('/', async (req, res, next) => {
-    console.log('GET /')
     try {
       const users = await getAll();
       res.send(users);
@@ -15,9 +14,8 @@ router
   })
 
   .get('/search', async (req, res, next) => {
-    console.log('GET /search')
     try {
-      const users = await search(req.query);
+      const users = await query(req.query);
       res.send(users);
     } catch (error) {
       console.error('Error searching for users:', error);
@@ -26,7 +24,6 @@ router
   })
 
   .get('/:id', async (req, res, next) => {
-    console.log('GET /:id')
     try {
       const user = await get(+req.params.id);
       res.send(user);
@@ -37,7 +34,6 @@ router
   })
 
   .post('/', async (req, res, next) => {
-    console.log('POST /')
     try {
       const newUser = await create(req.body);
       res.send(newUser);
@@ -48,7 +44,6 @@ router
   })
 
   .post('/login', async (req, res, next) => {
-    console.log('POST /login')
     try {
       const user = await login(req.body.email, req.body.password);
       res.send(user);
@@ -58,10 +53,19 @@ router
     }
   })
 
-  .patch('/:id', async (req, res, next) => {
-    console.log('PATCH /:id')
+  .post('/signup', async (req, res, next) => {
     try {
-      const updatedUser = await update({ ...req.body, id: +req.params.id });
+      const newUser = await create(req.body);
+      res.send(newUser);
+    } catch (error) {
+      console.error('Error creating user:', error);
+      res.status(500).send({ error: 'Internal Server Error' });
+    }
+  })
+
+  .patch('/:id', async (req, res, next) => {
+    try {
+      const updatedUser = await update({ ...req.body, id: req.params.id });
       res.send(updatedUser);
     } catch (error) {
       console.error('Error updating user:', error);
@@ -70,7 +74,6 @@ router
   })
 
   .delete('/:id', async (req, res, next) => {
-    console.log('DELETE /:id')
     try {
       const deletedUser = await remove(+req.params.id);
       res.send(deletedUser);

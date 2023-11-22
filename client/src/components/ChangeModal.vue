@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { changeType, isChangeModalActive } from '@/models/utilities';
+import { change, changeType, isChangeModalActive } from '@/models/utilities';
 import { getSession } from '@/models/session';
 import { ref } from 'vue';
+import { useUpdateUser } from '@/models/session';
+
+const { updateUser } = useUpdateUser();
 
 const session = getSession();
 const changeValue = ref('');
@@ -33,19 +36,25 @@ let validateInput = () => {
     return true;
 }
 
-const updateChangeValue = () => {
-    isSubmitted.value = true;
+const updateChangeValue = async () => {  // Make the function async
     if (!validateInput()) {
+        isSubmitted.value = true;
         return;
     }
 
-    if (changeType.value === 'name') {
-        session.user!.name = changeValue.value;
-    } else if (changeType.value === 'email') {
-        session.user!.email = changeValue.value;
-    } else if (changeType.value === 'password') {
-        session.user!.password = changeValue.value;
+    try {
+        if (changeType.value === 'name') {
+            await updateUser(String(session.user!.id), changeValue.value, session.user!.email, session.user!.password, session.user!.monthlyData);
+        } else if (changeType.value === 'email') {
+            await updateUser(String(session.user!.id), session.user!.name, changeValue.value, session.user!.password, session.user!.monthlyData);
+        } else if (changeType.value === 'password') {
+            await updateUser(String(session.user!.id), session.user!.name, session.user!.email, changeValue.value, session.user!.monthlyData);
+        }
+    } catch (error) {
+        console.error('Failed to update user:', error);
+        return;
     }
+
     changeValue.value = '';
     isSubmitted.value = false;
     isChangeModalActive.value = false;

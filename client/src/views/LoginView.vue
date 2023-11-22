@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useLogin, signUp } from '@/models/session';
+import { useLogin, useSignUp } from '@/models/session';
 import { getUserByEmail } from '@/models/users';
-import router from '@/router';
 
-const { login, logout } = useLogin();
+const { login } = useLogin();
+const { signUp } = useSignUp();
 
 const email = ref('');
 const password = ref('');
@@ -19,7 +19,6 @@ const isSignUpSubmitted = ref(false);
 
 async function validateLogin() {
     const user = await getUserByEmail(email.value);
-    console.log(user);
     if (email.value === '' || password.value === '') {
         errorMessage.value = 'Email and password cannot be empty.';
         return false;
@@ -58,12 +57,12 @@ async function validateSignUp() {
 }
 
 const doLogin = async () => {
-    isLoginSubmitted.value = true;
-    if (!(await validateLogin())) return;
+    if (!(await validateLogin())) {
+        isLoginSubmitted.value = true;
+        return;
+    }
     isLoginSubmitted.value = false;
-    console.log(email.value, password.value)
     login(email.value, password.value);
-    router.push('/');
 }
 
 const doSignUp = async () => {
@@ -71,8 +70,6 @@ const doSignUp = async () => {
     if (!(await validateSignUp())) return;
     isSignUpSubmitted.value = false;
     signUp(signUpName.value, signUpEmail.value, signUpPassword.value);
-    login(signUpEmail.value, signUpPassword.value);
-    router.push('/');
 }
 
 function toggleSignUp() {

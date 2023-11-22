@@ -24,17 +24,18 @@ async function get(id) {
   return col.Items[0];
 }
 
-async function search(query) {
-  const data = await dynamoDB.scan({
+async function query(query) {
+  const col = await dynamoDB.scan({
     TableName: 'Users',
+    FilterExpression: 'contains(#email, :email)',
+    ExpressionAttributeNames: {
+      '#email': 'email',
+    },
+    ExpressionAttributeValues: {
+      ':email': query,
+    },
   }).promise();
-  return data.users.filter(x => {
-    return (
-      x.name.toLowerCase().includes(query.toLowerCase()) ||
-      x.email.toLowerCase().includes(query.toLowerCase()) ||
-      x.username.toLowerCase().includes(query.toLowerCase()) 
-    );
-  });
+  return col.Items;
 }
 
 /**
@@ -44,15 +45,19 @@ async function search(query) {
 async function create(values) {
   const users = await getAll()
   const length = users.length
+  const userCheck = await query(values.email)
+  if (userCheck.length > 0) {
+    return null
+  }
   const col = await dynamoDB.put({
     TableName: 'Users',
     Item: {
-      id: length + 1,
+      id: String(length + 1),
       ...values,
     },
   }).promise();
   return {
-    id: length + 1,
+    id: String(length + 1),
     ...values,
   }
 }
@@ -84,21 +89,20 @@ async function update(newValues) {
     Key: {
       id: newValues.id,
     },
-    UpdateExpression: 'set #name = :name, email = :email, username = :username, password = :password',
+    UpdateExpression: 'set #name = :name, email = :email, password = :password, monthlyData = :monthlyData',
     ExpressionAttributeNames: {
       '#name': 'name',
     },
     ExpressionAttributeValues: {
       ':name': newValues.name,
       ':email': newValues.email,
-      ':username': newValues.username,
       ':password': newValues.password,
-      ':MonthlyData': newValues.MonthlyData,
+      ':monthlyData': newValues.monthlyData, // Use consistent case here
     },
-  }).promise();
-  
+  }).promise();  
   return newValues;
 }
+
 
 /**
  * @param {number} id - The user's ID.
@@ -114,5 +118,5 @@ async function remove(id) {
 
 
 module.exports = {
-  getAll, get, search, create, update, remove, login
+  getAll, get, query, create, update, remove, login
 };

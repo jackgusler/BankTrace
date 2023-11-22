@@ -11,17 +11,8 @@ const session = reactive({
   redirectUrl: null as string | null,
 });
 
-export function api(action: string, body?: unknown, method?: string) {
-  console.log(`Calling api with action: ${action}, body: ${JSON.stringify(body)}, method: ${method}`);
-  return myFetch.api(`${action}`, body, method)
-    .then((response) => {
-      console.log(`Received response: ${JSON.stringify(response)}`);
-      return response;
-    })
-    .catch((err) => {
-      console.error(`Caught error: ${err}`);
-      showError(err);
-    });
+export async function api(action: string, body?: unknown, method?: string) {
+  return myFetch.api(`${action}`, body, method).catch((err) => showError(err));
 }
 
 export function getSession() {
@@ -46,7 +37,6 @@ export function useLogin() {
         return session.user;
       } catch (err) {
         console.error(err);
-        // Handle the error (for example, show an error message to the user)
       }
       return null;
     },
@@ -57,36 +47,44 @@ export function useLogin() {
   };
 }
 
-export async function signUp(
-  name: string,
-  email: string,
-  password: string
-): Promise<User | null> {
-  const user = await api("users/signup", {
-    //what about id?
-    name,
-    email,
-    password,
-    monthlyData: [
-      {
-        year: setUpYear,
-        months: [
-          {
-            month: setUpMonth,
-            categories: ["Example"],
-            budget: [100],
-            spent: [50],
-          },
-        ],
-      },
-    ],
-  });
-  if (!user) {
-    throw new Error("User is undefined");
-  } else {
-    session.user = user;
-    return session.user;
-  }
+export function useSignUp() {
+  const router = useRouter();
+  return {
+    async signUp(
+      name: string,
+      email: string,
+      password: string
+    ): Promise<User | null> {
+      try {
+        const user = await api("users/signup", {
+          name,
+          email,
+          password,
+          monthlyData: [
+            {
+              year: setUpYear,
+              months: [
+                {
+                  month: setUpMonth,
+                  categories: ["Test"],
+                  budget: [100],
+                  spent: [50],
+                },
+              ],
+            },
+          ],
+        });
+        if (user != undefined) {
+          session.user = user;
+          router.push(session.redirectUrl || "/");
+          return session.user;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+      return null;
+    },
+  };
 }
 
 export function useLogout() {
@@ -95,6 +93,47 @@ export function useLogout() {
     logout() {
       session.user = null;
       router.push("/login");
+    },
+  };
+}
+
+export function useUpdateUser() {
+  const router = useRouter();
+  return {
+    async updateUser(
+      id: string,
+      name: string,
+      email: string,
+      password: string,
+      monthlyData: {
+        year: number;
+        months: {
+          month: number;
+          categories: string[];
+          budget: number[];
+          spent: number[];
+        }[];
+      }[]
+    ): Promise<User | null> {
+      try {
+        const user = await api(
+          `users/${id}`,
+          {
+            name,
+            email,
+            password,
+            monthlyData,
+          },
+          "PATCH"
+        );
+        if (user != undefined) {
+          session.user = user;
+          return session.user;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+      return null;
     },
   };
 }
